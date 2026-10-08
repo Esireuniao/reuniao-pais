@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>PROJEÇÃO - ESI SÃO JOSÉ V3</title>
+    <!-- Firebase App e Database -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <!-- Biblioteca para geração do QR Code -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 15px; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; overflow: hidden; }
+        header { border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        
+        h1#mainTitle { font-size: 26px; color: #3b82f6; margin: 0 0 5px 0; text-transform: uppercase; }
+        #relogio { font-family: monospace; color: #60a5fa; font-weight: bold; font-size: 20px; }
+        
+        .btn-som { background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; margin-right: 15px; transition: background 0.2s; }
+        .btn-som.ativo { background: #059669; }
+
+        /* ESTILO DO CONTAINER DO QR CODE NO HEADER */
+        .qrcode-box { display: flex; align-items: center; gap: 10px; background: #1e293b; padding: 6px 12px; border-radius: 8px; border: 1px solid #334155; cursor: pointer; }
+        .qrcode-text { font-size: 11px; font-weight: bold; color: #94a3b8; text-transform: uppercase; line-height: 1.2; text-align: right; }
+        #qrcodeCanvas { background: #ffffff; padding: 4px; border-radius: 4px; display: flex; justify-content: center; align-items: center; }
+        #qrcodeCanvas img, #qrcodeCanvas canvas { display: block !important; }
+
+        .tabs { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; flex-shrink: 0; padding-bottom: 5px; }
+        .tab-btn { padding: 10px 20px; background: #1e293b; border: 1px solid #334155; color: #94a3b8; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 16px; white-space: nowrap; }
+        .tab-btn.active { background: #2563eb; color: white; border-color: #3b82f6; box-shadow: 0 0 10px rgba(37, 99, 235, 0.3); }
+        
+        /* Container Principal da Projeção */
+        .grid-horizontal { display: flex; gap: 15px; overflow-x: auto; flex-grow: 1; align-items: stretch; padding-bottom: 10px; width: 100%; box-sizing: border-box; }
+        
+        /* TRAVA DE TELA: Quando tiver 4+ professores, bloqueia a rolagem horizontal */
+        .grid-horizontal.compacto { overflow-x: hidden; gap: 8px; }
+        
+        /* CARD PADRÃO */
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; flex: 1; min-width: 380px; max-width: 500px; box-sizing: border-box; }
+        .grid-horizontal.compacto .card { min-width: 0 !important; max-width: none !important; flex: 1 1 0%; padding: 10px; border-radius: 8px; }
+        
+        .prof-header { border-bottom: 2px solid #3b82f6; padding-bottom: 8px; margin-bottom: 10px; }
+        .grid-horizontal.compacto .prof-header { padding-bottom: 4px; margin-bottom: 6px; border-bottom-width: 1px; }
+
+        .prof-name { color: #60a5fa; font-weight: bold; text-transform: uppercase; font-size: 20px; display: flex; justify-content: space-between; align-items: center; gap: 5px; min-width: 0; }
+        .grid-horizontal.compacto .prof-name { font-size: 14px; }
+
+        .prof-mesa-badge { color: #f59e0b; font-size: 13px; font-weight: bold; margin-top: 2px; text-transform: uppercase; }
+        .grid-horizontal.compacto .prof-mesa-badge { font-size: 11px; }
+
+        /* Lista de Chamadas */
+        .agenda-list { overflow-y: auto; flex-grow: 1; min-width: 0; scroll-behavior: smooth; }
+        .agenda-list::-webkit-scrollbar { width: 4px; }
+        .agenda-list::-webkit-scrollbar-track { background: #1e293b; }
+        .agenda-list::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+        .agenda-item { background: #111827; border: 1px solid #374151; padding: 12px; border-radius: 8px; margin-top: 8px; border-left: 6px solid #64748b; min-width: 0; transition: all 0.3s ease; }
+        .grid-horizontal.compacto .agenda-item { padding: 8px; margin-top: 5px; border-left-width: 4px; border-radius: 5px; }
+        
+        /* Destaque PRÓXIMO DA FILA */
+        .agenda-item.proximo { 
+            border-left-color: #f59e0b; 
+            background: #1e1b11; 
+            border-top: 1px solid #78350f; 
+            border-right: 1px solid #78350f; 
+            border-bottom: 1px solid #78350f; 
+        }
+
+        /* Destaque "FOI CHAMADO" para o atendimento atual */
+        .agenda-item.ativo { 
+            border-left-color: #10b981; 
+            background: linear-gradient(135deg, #064e3b 0%, #022c22 100%); 
+            border: 2px solid #10b981; 
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); 
+            animation: piscaCard 1.5s infinite alternate;
+        }
+
+        @keyframes piscaCard {
+            0% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); border-color: #10b981; }
+            100% { box-shadow: 0 0 22px rgba(16, 185, 129, 0.8); border-color: #34d399; }
+        }
+        
+        .item-label { font-size: 12px; font-weight: bold; color: #94a3b8; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .grid-horizontal.compacto .item-label { font-size: 11px; }
+
+        /* Indicador de posição na fila */
+        .posicao-badge { font-family: monospace; font-size: 13px; font-weight: bold; color: #f59e0b; background: rgba(245, 158, 11, 0.1); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .grid-horizontal.compacto .posicao-badge { font-size: 11px; padding: 0px 4px; }
+        
+        .aluno-nome { font-size: 16px; font-weight: bold; margin-top: 4px; color: #ffffff; word-break: break-word; }
+        .grid-horizontal.compacto .aluno-nome { font-size: 13px; margin-top: 2px; }
+        
+        .status-badge { font-size: 11px; padding: 4px 8px; border-radius: 4px; font-weight: bold; margin-top: 6px; display: inline-block; text-transform: uppercase; }
+        .grid-horizontal.compacto .status-badge { font-size: 10px; padding: 2px 5px; margin-top: 4px; }
+        
+        .status-badge.espera { background: #1d4ed8; color: #ffffff; }
+        .status-badge.proximo { background: #f59e0b; color: #000000; font-weight: bold; }
+        .status-badge.ativo { background: #10b981; color: #ffffff; animation: pulsa 1s infinite; }
+        
+        @keyframes pulsa { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
+
+        /* MODAL DE ZOOM DO QR CODE */
+        #modalQrZoom { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; backdrop-filter: blur(6px); }
+        .modal-qr-content { background: #1e293b; padding: 30px; border-radius: 16px; border: 2px solid #3b82f6; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); }
+        #qrExpandedCanvas { background: #ffffff; padding: 16px; border-radius: 12px; margin: 15px auto; display: inline-block; }
+        #qrExpandedCanvas img, #qrExpandedCanvas canvas { display: block !important; margin: 0 auto; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1 id="mainTitle">ESI SÃO JOSÉ - PROJEÇÃO</h1>
+            <div id="relogio">00:00:00</div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap: 15px;">
+            <!-- CONTAINER DO QR CODE -->
+            <div class="qrcode-box" onclick="abrirZoomQr()" title="Clique para ampliar o QR Code">
+                <div class="qrcode-text">
+                    Acompanhe a fila<br><span style="color: #60a5fa;">no celular 📱</span>
+                </div>
+                <div id="qrcodeCanvas"></div>
+            </div>
+
+            <button id="btnAudio" class="btn-som" onclick="ativarAudioPainel()">🔔 ATIVAR SOM DO PAINEL</button>
+        </div>
+    </header>
+
+    <div id="tabBar" class="tabs"></div>
+    <div id="mainGrid" class="grid-horizontal"></div>
+
+    <!-- MODAL EXPANDIDO DO QR CODE PARA LEITURA DE LONGE -->
+    <div id="modalQrZoom" onclick="fecharZoomQr()">
+        <div class="modal-qr-content" onclick="event.stopPropagation()">
+            <h2 style="margin: 0; color: #3b82f6; font-size: 22px;">ACOMPANHE A FILA NO SEU CELULAR</h2>
+            <p style="color: #94a3b8; font-size: 14px; margin: 8px 0 0 0;">Aponta a câmera do celular para o código abaixo:</p>
+            <div id="qrExpandedCanvas"></div>
+            <br>
+            <button onclick="fecharZoomQr()" style="background: #2563eb; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">Fechar / Voltar</button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC4D3OQUebG1qK8BGeMWUsvUSSwLVv3Lsg", 
+            databaseURL: "https://reuniao-fund-2-default-rtdb.firebaseio.com",
+            projectId: "reuniao-fund-2"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let curSala = 0;
+        let cloudData = { t: "PAINEL DE PROJEÇÃO", salas: [], items: {} };
+        let chamadosAnteriores = new Set();
+        let audioPermitido = false;
+
+        // GERADOR DE QR CODE
+        window.addEventListener('DOMContentLoaded', () => {
+            const currentUrl = window.location.href;
+
+            // QR Code Pequeno do Header
+            new QRCode(document.getElementById("qrcodeCanvas"), {
+                text: currentUrl,
+                width: 48,
+                height: 48,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+
+            // QR Code Expandido
+            new QRCode(document.getElementById("qrExpandedCanvas"), {
+                text: currentUrl,
+                width: 260,
+                height: 260,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        });
+
+        function abrirZoomQr() {
+            document.getElementById('modalQrZoom').style.display = 'flex';
+        }
+
+        function fecharZoomQr() {
+            document.getElementById('modalQrZoom').style.display = 'none';
+        }
+
+        function tocarGongoPainel() {
+            if (!audioPermitido) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(659.25, ctx.currentTime);
+                gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain1.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.2);
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.start(ctx.currentTime);
+                osc1.stop(ctx.currentTime + 1.2);
+
+                setTimeout(() => {
+                    const osc2 = ctx.createOscillator();
+                    const gain2 = ctx.createGain();
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(523.25, ctx.currentTime);
+                    gain2.gain.setValueAtTime(0.4, ctx.currentTime);
+                    gain2.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.5);
+                    osc2.connect(gain2);
+                    gain2.connect(ctx.destination);
+                    osc2.start(ctx.currentTime);
+                    osc2.stop(ctx.currentTime + 1.5);
+                }, 300);
+            } catch (e) {
+                console.log("Aguardando permissão de áudio do usuário.");
+            }
+        }
+
+        function ativarAudioPainel() {
+            audioPermitido = true;
+            tocarGongoPainel();
+            const btn = document.getElementById('btnAudio');
+            btn.innerText = "🔊 SOM ATIVADO";
+            btn.classList.add('ativo');
+        }
+
+        db.ref('sistema_v3').on('value', (snapshot) => {
+            const val = snapshot.val();
+            if (val) { 
+                cloudData = val; 
+                verificarNovosChamados();
+                render(); 
+            }
+        });
+
+        function verificarNovosChamados() {
+            const novosAtivos = new Set();
+            Object.values(cloudData.items || {}).forEach(item => {
+                if (item.status === 'ativo') {
+                    novosAtivos.add(item.id);
+                    if (!chamadosAnteriores.has(item.id)) {
+                        tocarGongoPainel();
+                    }
+                }
+            });
+            chamadosAnteriores = novosAtivos;
+        }
+
+        function render() {
+            document.getElementById('mainTitle').innerText = cloudData.t || "REUNIÃO SÃO JOSÉ";
+            
+            const tabs = document.getElementById('tabBar');
+            tabs.innerHTML = (cloudData.salas || []).map((s, i) => `
+                <button class="tab-btn ${curSala==i?'active':''}" onclick="curSala=${i}; render()">${s.n}</button>
+            `).join('');
+
+            const grid = document.getElementById('mainGrid');
+            if (!cloudData.salas || !cloudData.salas[curSala] || !cloudData.salas[curSala].p) {
+                return grid.innerHTML = "<div style='padding:20px; font-weight:bold; color:#94a3b8;'>Nenhuma sala ou professor configurado para projeção.</div>";
+            }
+
+            const totalProfessores = cloudData.salas[curSala].p.length;
+            
+            if (totalProfessores >= 4) { 
+                grid.classList.add('compacto'); 
+            } else { 
+                grid.classList.remove('compacto'); 
+            }
+
+            grid.innerHTML = cloudData.salas[curSala].p.map((profObj, pIdx) => {
+                const pName = profObj.nome;
+                const pMesa = profObj.mesa || cloudData.salas[curSala].n || "Mesa de Atendimento";
+
+                const itemsProf = Object.values(cloudData.items || {}).filter(i => i.sala == curSala && i.prof == pName && i.status !== 'fim');
+                itemsProf.sort((a,b) => a.id.localeCompare(b.id));
+
+                const proximoItem = itemsProf.find(i => i.status === 'espera');
+                const proximoId = proximoItem ? proximoItem.id : null;
+
+                return `
+                <div class="card">
+                    <div class="prof-header">
+                        <div class="prof-name">
+                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${pName}</span>
+                        </div>
+                        <div class="prof-mesa-badge">📍 ${pMesa}</div>
+                    </div>
+                    
+                    <div class="agenda-list" id="proj-list-${pIdx}">
+                        ${itemsProf.length === 0 ? `
+                            <div style="padding:15px; text-align:center; color:#64748b; font-size:14px; font-style:italic;">
+                                Sem atendimentos pendentes
+                            </div>
+                        ` : itemsProf.map((item, index) => {
+                            const isProximo = (item.id === proximoId);
+                            let statusTexto = "Em espera";
+                            let classeStatus = "espera";
+
+                            if (item.status === 'ativo') { 
+                                statusTexto = "🔔 FOI CHAMADO!"; 
+                                classeStatus = "ativo"; 
+                            } else if (isProximo) {
+                                statusTexto = "⏳ PRÓXIMO DA FILA";
+                                classeStatus = "proximo";
+                            }
+
+                            const posicaoFila = `${index + 1}º`;
+
+                            return `
+                            <div class="agenda-item ${item.status=='ativo'?'ativo':''}${isProximo ? 'proximo' : ''}">
+                                <div style="display:flex; justify-content:space-between; align-items:center; gap: 4px;">
+                                    <span class="item-label">${item.serie}</span>
+                                    <span class="posicao-badge">${posicaoFila}</span>
+                                </div>
+                                <div class="aluno-nome">${item.a}</div>
+                                <div class="status-badge ${classeStatus}">${statusTexto}</div>
+                            </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ROLAGEM AUTOMÁTICA
+        let scrollDirection = 1;
+        setInterval(() => {
+            const listas = document.querySelectorAll('.agenda-list');
+            listas.forEach(list => {
+                if (list.scrollHeight > list.clientHeight) {
+                    if (list.scrollTop + list.clientHeight >= list.scrollHeight - 5) {
+                        scrollDirection = -1;
+                    } else if (list.scrollTop <= 0) {
+                        scrollDirection = 1;
+                    }
+                    list.scrollTop += (scrollDirection * 25);
+                }
+            });
+        }, 3000);
+
+        setInterval(() => {
+            document.getElementById('relogio').innerText = new Date().toLocaleTimeString();
+        }, 1000);
+    </script>
+</body>
+</html>

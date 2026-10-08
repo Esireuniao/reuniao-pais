@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>ESI SÃO JOSÉ - CONTROLE V3 (DARK)</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 15px; }
+        header { border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        
+        h1#mainTitle { font-size: 28px; color: #3b82f6; margin: 0 0 5px 0; }
+        #relogio { font-family: monospace; color: #60a5fa; font-weight: bold; font-size: 20px; }
+        
+        .tabs { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; }
+        .tab-btn { padding: 10px 20px; background: #1e293b; border: 1px solid #334155; color: #94a3b8; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 16px; }
+        .tab-btn.active { background: #2563eb; color: white; border-color: #3b82f6; box-shadow: 0 0 10px rgba(37, 99, 235, 0.3); }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; align-items: start; }
+        
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; height: 630px; box-sizing: border-box; }
+        
+        .card-header-fixed { flex-shrink: 0; }
+        .prof-name { color: #60a5fa; font-weight: bold; text-transform: uppercase; margin-bottom: 12px; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; font-size: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .prof-time-badge { font-size: 13px; background: #172554; color: #60a5fa; padding: 4px 8px; border-radius: 20px; border: 1px solid #1e3a8a; text-transform: none; }
+        
+        .input-area { background: #111827; padding: 12px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #374151; }
+        .input-area label { font-size: 13px; font-weight: bold; color: #94a3b8; display: block; margin-bottom: 4px; }
+        input, select { background: #1f2937; border: 1px solid #4b5563; color: #f8fafc; padding: 10px; border-radius: 6px; font-size: 15px; width: 100%; box-sizing: border-box; display: block; margin-bottom: 10px; font-weight: 500; }
+        input:focus, select:focus { border-color: #3b82f6; outline: none; }
+        
+        .btn-add { background: #059669; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 5px; font-size: 15px; transition: background 0.2s; }
+        .btn-add:hover { background: #047857; }
+
+        .agenda-list { overflow-y: auto; flex-grow: 1; padding-right: 4px; }
+        .agenda-list::-webkit-scrollbar { width: 6px; }
+        .agenda-list::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
+        .agenda-list::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+        .agenda-item { background: #111827; border: 1px solid #374151; padding: 12px; border-radius: 8px; margin-top: 8px; border-left: 6px solid #64748b; transition: all 0.2s; }
+        .agenda-item.proximo { border-left-color: #f59e0b; background: #1e1b11; border-top: 1px solid #78350f; border-right: 1px solid #78350f; border-bottom: 1px solid #78350f; }
+        .agenda-item.ativo { border-left-color: #3b82f6; background: #172554; border-top: 1px solid #1e3a8a; border-right: 1px solid #1e3a8a; border-bottom: 1px solid #1e3a8a; }
+        .agenda-item.concluido { opacity: 0.4; border-left-color: #10b981; background: #022c22; }
+        
+        .badge-proximo { background: #f59e0b; color: #000; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 6px; text-transform: uppercase; }
+
+        .timer { font-family: monospace; font-weight: bold; color: #34d399; font-size: 18px; }
+        .timer.perigo { color: #f87171; animation: pisca 1s infinite; font-size: 22px; }
+        @keyframes pisca { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        
+        .controls { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        button.action { font-size: 13px; padding: 8px 12px; cursor: pointer; border-radius: 4px; border: 1px solid #4b5563; background: #1f2937; color: #e5e7eb; font-weight: bold; }
+        button.action:hover { background: #374151; }
+
+        #modalConfig { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); z-index: 1000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+        .modal-body { background: #1e293b; width: 100%; max-width: 600px; border-radius: 12px; padding: 20px; max-height: 90vh; overflow-y: auto; border: 1px solid #334155; color: #f8fafc; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
+        .config-section { border: 1px solid #334155; padding: 10px; margin-top: 10px; border-radius: 6px; background: #111827; }
+        textarea { width: 100%; height: 60px; background: #1f2937; color: #f8fafc; border: 1px solid #4b5563; border-radius: 4px; padding: 5px; box-sizing: border-box; font-size: 12px; }
+        .config-row { display: flex; gap: 10px; }
+        .config-row > div { flex: 1; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1 id="mainTitle">CONFIGURANDO NOVA REUNIÃO V3...</h1>
+            <div id="relogio">00:00:00</div>
+        </div>
+        <button style="background:#2563eb; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; font-weight: bold; font-size: 14px;" onclick="openConfig()">⚙️ CONFIGURAÇÕES DA REUNIÃO</button>
+    </header>
+
+    <div id="tabBar" class="tabs"></div>
+    <div id="mainGrid" class="grid"></div>
+
+    <!-- MODAL DE CONFIGURAÇÃO -->
+    <div id="modalConfig">
+        <div class="modal-body">
+            <h3 style="margin-top: 0; color: #3b82f6; border-bottom: 2px solid #334155; padding-bottom: 5px; font-size: 20px;">Configurações Globais (V3 - Dark)</h3>
+            
+            <label style="font-size: 14px; font-weight: bold; color: #94a3b8;">Título da Reunião / Segmento:</label>
+            <input type="text" id="cfgEventTitle" placeholder="Ex: REUNIÃO DE PAIS - INFANTIL / FUND I">
+            
+            <h4 style="color: #f8fafc; margin: 10px 0 5px 0; font-size: 16px;">1. Séries e Alunos</h4>
+            <div id="seriesConfigList"></div>
+            <button onclick="addNovaSerieConfig()" style="background:#059669; color:white; border:none; padding:8px 14px; font-size:13px; cursor:pointer; font-weight: bold; border-radius: 4px; margin-top:5px;">+ Criar Nova Série</button>
+
+            <h4 style="color: #f8fafc; margin: 20px 0 5px 0; font-size: 16px;">2. Estrutura de Salas e Professores</h4>
+            <div id="salasConfigList"></div>
+            <button onclick="addNovaSala()" style="background:#2563eb; color:white; border:none; padding:10px 15px; font-size:14px; cursor:pointer; font-weight: bold; border-radius: 4px; margin-top:10px; width:100%;">+ ADICIONAR NOVA SALA</button>
+            
+            <hr style="margin-top:20px; border-color:#334155;">
+            <button onclick="saveConfig()" style="width:100%; background:#059669; color:white; border:none; padding:12px; cursor:pointer; font-weight: bold; border-radius: 4px; font-size:15px;">SALVAR CONFIGURAÇÕES</button>
+            <button onclick="closeConfig()" style="width:100%; background:none; color:#94a3b8; border:none; margin-top:10px; cursor:pointer; font-size: 14px;">Fechar / Cancelar</button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC4D3OQUebG1qK8BGeMWUsvUSSwLVv3Lsg", 
+            databaseURL: "https://reuniao-fund-2-default-rtdb.firebaseio.com",
+            projectId: "reuniao-fund-2"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let curSala = 0;
+        let cloudData = { t: "REUNIÃO V3 - TOQUE EM CONFIGURAÇÕES", salas: [], series: {}, items: {} };
+        let alarmesTocados = new Set();
+
+        function tocarAlarme() {
+            const context = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = context.createOscillator();
+            const gain = context.createGain();
+            osc.connect(gain); gain.connect(context.destination);
+            osc.type = "sine"; osc.frequency.value = 880;
+            gain.gain.setValueAtTime(0, context.currentTime);
+            gain.gain.linearRampToValueAtTime(1, context.currentTime + 0.01);
+            osc.start(context.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.5);
+            osc.stop(context.currentTime + 0.5);
+        }
+
+        db.ref('sistema_v3').on('value', (snapshot) => {
+            const val = snapshot.val();
+            if (val) { cloudData = val; render(); }
+            else { openConfig(); }
+        });
+
+        function render() {
+            document.getElementById('mainTitle').innerText = cloudData.t || "REUNIÃO V3";
+            const tabs = document.getElementById('tabBar');
+            tabs.innerHTML = (cloudData.salas || []).map((s, i) => `
+                <button class="tab-btn ${curSala==i?'active':''}" onclick="curSala=${i}; render()">${s.n}</button>
+            `).join('');
+
+            const grid = document.getElementById('mainGrid');
+            if (!cloudData.salas || !cloudData.salas[curSala] || !cloudData.salas[curSala].p) {
+                return grid.innerHTML = "<div style='padding:20px; font-weight:bold; color:#94a3b8;'>Abra as configurações para cadastrar as salas e professores!</div>";
+            }
+
+            // 1. SALVAR ESTADOS ATUAIS DE SELEÇÃO E FOCO DOS DROPDOWNS
+            const savedStates = {};
+            const activeElementId = document.activeElement ? document.activeElement.id : null;
+
+            cloudData.salas[curSala].p.forEach((_, pIdx) => {
+                const elSerie = document.getElementById(`sel-serie-${pIdx}`);
+                const elAluno = document.getElementById(`sel-aluno-${pIdx}`);
+                
+                if (elSerie) {
+                    savedStates[pIdx] = {
+                        serieVal: elSerie.value,
+                        alunoVal: elAluno ? elAluno.value : "",
+                        alunoDisabled: elAluno ? elAluno.disabled : true,
+                        alunoHTML: elAluno ? elAluno.innerHTML : '<option value="">-- Escolha primeiro a série --</option>'
+                    };
+                }
+            });
+
+            // 2. RENDERIZAR ESTRUTURA BASE DA GRID
+            grid.innerHTML = cloudData.salas[curSala].p.map((profObj, pIdx) => {
+                const pName = profObj.nome;
+                const pTime = parseInt(profObj.tempoAtendimento || 10);
+                const listaSeries = (profObj.seriesAtendidas || "").split(',').map(s => s.trim()).filter(s => s !== "");
+
+                const itemsProf = Object.values(cloudData.items || {}).filter(i => i.sala == curSala && i.prof == pName);
+                itemsProf.sort((a,b) => a.id.localeCompare(b.id));
+
+                // Identifica o ID do primeiro aluno que está em espera (Próximo da fila)
+                const proximoItem = itemsProf.find(i => i.status === 'espera');
+                const proximoId = proximoItem ? proximoItem.id : null;
+
+                return `
+                <div class="card">
+                    <div class="card-header-fixed">
+                        <div class="prof-name">
+                            <span>${pName}</span>
+                            <span class="prof-time-badge">⏱️ ${pTime} min</span>
+                        </div>
+                        
+                        <div class="input-area">
+                            <label>1. Escolha a Série:</label>
+                            <select id="sel-serie-${pIdx}" onchange="carregarAlunosDaSerie(${pIdx})">
+                                <option value="">-- Selecione a Série --</option>
+                                ${listaSeries.map(s => `<option value="${s}">${s}</option>`).join('')}
+                            </select>
+                            
+                            <label>2. Escolha o Aluno:</label>
+                            <select id="sel-aluno-${pIdx}" disabled onkeydown="if(event.key==='Enter') addItemV3(${pIdx}, '${pName}', ${pTime})">
+                                <option value="">-- Escolha primeiro a série --</option>
+                            </select>
+                            
+                            <button class="btn-add" onclick="addItemV3(${pIdx}, '${pName}', ${pTime})" style="margin-top: 15px;">AGENDAR NA FILA</button>
+                        </div>
+                    </div>
+                    
+                    <div class="agenda-list">
+                        ${itemsProf.map(item => {
+                            const isProximo = (item.id === proximoId);
+                            return `
+                            <div class="agenda-item ${item.status=='ativo'?'ativo':''} ${item.status=='fim'?'concluido':''}${isProximo ? 'proximo' : ''}">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <div>
+                                        <span style="font-size:14px; font-weight:bold; color:#60a5fa;">Série: ${item.serie}</span>${isProximo ? '<span class="badge-proximo">Próximo</span>' : ''}
+                                    </div>
+                                    <span class="timer" id="tm-${item.id}">${item.status=='fim'?'OK': (pTime.toString().padStart(2,'0') + ':00')}</span>
+                                </div>
+                                <div style="font-size:16px; font-weight:bold; margin-top:5px; color:#ffffff">${item.a}</div>
+                                
+                                <div class="controls">
+                                    ${item.status=='espera' ? `
+                                        <button class="action" onclick="setStatus('${item.id}', 'ativo')" style="background:#2563eb; color:white; border-color:#2563eb;">Iniciar</button>
+                                        <button class="action" onclick="reagendarItem('${item.id}')">🔄 Reagendar</button>
+                                    ` : ''}
+                                    ${item.status=='ativo' ? `<button class="action" onclick="setStatus('${item.id}', 'fim')" style="background:#059669; color:white; border-color:#059669;">Concluir</button>` : ''}
+                                    <button class="action" onclick="removeItem('${item.id}')" style="color:#f87171; border-color:#7f1d1d;">Excluir</button>
+                                </div>
+                            </div>
+                        `}).join('')}
+                    </div>
+                </div>`;
+            }).join('');
+
+            // 3. RESTAURAR SELEÇÕES E FOCO
+            cloudData.salas[curSala].p.forEach((_, pIdx) => {
+                const elSerie = document.getElementById(`sel-serie-${pIdx}`);
+                const elAluno = document.getElementById(`sel-aluno-${pIdx}`);
+                const state = savedStates[pIdx];
+
+                if (state && elSerie && elAluno) {
+                    elSerie.value = state.serieVal;
+                    
+                    if (state.serieVal) {
+                        elAluno.innerHTML = state.alunoHTML;
+                        elAluno.disabled = state.alunoDisabled;
+                        elAluno.value = state.alunoVal;
+                    }
+                }
+            });
+
+            if (activeElementId) {
+                const elToFocus = document.getElementById(activeElementId);
+                if (elToFocus) elToFocus.focus();
+            }
+        }
+
+        function carregarAlunosDaSerie(pIdx) {
+            const serieSelecionada = document.getElementById(`sel-serie-${pIdx}`).value;
+            const selectAluno = document.getElementById(`sel-aluno-${pIdx}`);
+            
+            if(!serieSelecionada) { 
+                selectAluno.innerHTML = '<option value="">-- Escolha primeiro a série --</option>';
+                selectAluno.disabled = true; 
+                return; 
+            }
+
+            const alunosRaw = (cloudData.series && cloudData.series[serieSelecionada]) || "";
+            // Ordenação Alfabética dos Alunos
+            const lista = alunosRaw.split('\n')
+                .map(l => l.trim())
+                .filter(l => l !== "")
+                .sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
+
+            selectAluno.innerHTML = '<option value="">-- Selecione o Aluno --</option>' + lista.map(a => `<option value="${a}">${a}</option>`).join('');
+            selectAluno.disabled = false;
+            selectAluno.focus();
+        }
+
+        function addItemV3(pIdx, profName, tempoMaxLim) {
+            const serieSel = document.getElementById(`sel-serie-${pIdx}`).value;
+            const alunoSel = document.getElementById(`sel-aluno-${pIdx}`).value;
+            if(!serieSel || !alunoSel) return alert("Selecione a Série e o Aluno!");
+            
+            const id = Date.now().toString();
+            db.ref('sistema_v3/items/' + id).set({ 
+                id, sala: curSala, prof: profName, serie: serieSel, a: alunoSel, r: "", status: 'espera', start: 0, tempoMaxLim: tempoMaxLim
+            }).then(() => {
+                // Reseta a série e o aluno após agendar
+                const selectSerie = document.getElementById(`sel-serie-${pIdx}`);
+                const selectAluno = document.getElementById(`sel-aluno-${pIdx}`);
+                if (selectSerie) selectSerie.value = "";
+                if (selectAluno) {
+                    selectAluno.innerHTML = '<option value="">-- Escolha primeiro a série --</option>';
+                    selectAluno.disabled = true;
+                }
+            });
+        }
+
+        function setStatus(id, status) {
+            const up = { status };
+            if(status === 'ativo') { up.start = Date.now(); alarmesTocados.delete(id); }
+            db.ref('sistema_v3/items/' + id).update(up);
+        }
+
+        function reagendarItem(oldId) {
+            const itemOriginal = cloudData.items[oldId];
+            const novoId = Date.now().toString();
+            db.ref('sistema_v3/items/' + oldId).remove();
+            db.ref('sistema_v3/items/' + novoId).set({...itemOriginal, id: novoId, status: 'espera', start: 0});
+        }
+
+        function removeItem(id) { db.ref('sistema_v3/items/' + id).remove(); }
+
+        setInterval(() => {
+            document.getElementById('relogio').innerText = new Date().toLocaleTimeString();
+            Object.values(cloudData.items || {}).forEach(item => {
+                if(item.status === 'ativo') {
+                    const el = document.getElementById('tm-' + item.id);
+                    if(el) {
+                        const maxMinutos = parseInt(item.tempoMaxLim || 10);
+                        let diff = (maxMinutos * 60) - Math.floor((Date.now() - item.start) / 1000);
+                        let m = Math.floor(Math.abs(diff)/60).toString().padStart(2,'0');
+                        let s = (Math.abs(diff)%60).toString().padStart(2,'0');
+                        el.innerText = (diff < 0 ? "-" : "") + m + ":" + s;
+                        if(diff <= 0) { el.classList.add('perigo'); if(!alarmesTocados.has(item.id)) { tocarAlarme(); alarmesTocados.add(item.id); } }
+                    }
+                }
+            });
+        }, 1000);
+
+        let tempSalas = []; let tempSeries = {};
+        function openConfig() { 
+            tempSalas = JSON.parse(JSON.stringify(cloudData.salas || []));
+            tempSeries = JSON.parse(JSON.stringify(cloudData.series || {}));
+            document.getElementById('modalConfig').style.display = 'flex'; 
+            document.getElementById('cfgEventTitle').value = cloudData.t || ""; 
+            renderConfigSeries(); renderConfigSalas(); 
+        }
+        function closeConfig() { document.getElementById('modalConfig').style.display = 'none'; }
+        
+        function renderConfigSeries() {
+            document.getElementById('seriesConfigList').innerHTML = Object.keys(tempSeries).map(sName => `
+                <div style="background:#111827; padding:8px; margin-top:5px; border-radius:4px; border:1px solid #334155;">
+                    <strong>Série: ${sName}</strong>
+                    <button onclick="delete tempSeries['${sName}']; renderConfigSeries()" style="float:right; color:#f87171; border:none; background:none; cursor:pointer;">Excluir</button>
+                    <textarea style="margin-top:5px;" placeholder="Cole a lista de alunos (um por linha)" onchange="tempSeries['${sName}']=this.value">${tempSeries[sName]}</textarea>
+                </div>
+            `).join('');
+        }
+        function addNovaSerieConfig() { const n = prompt("Nome da Série (Ex: 1ºA):"); if(n) { tempSeries[n.trim()] = ""; renderConfigSeries(); } }
+
+        function renderConfigSalas() { 
+            document.getElementById('salasConfigList').innerHTML = tempSalas.map((s, i) => `
+                <div style="background:#111827; padding:10px; margin-top:10px; border-radius:5px; border:1px solid #334155;">
+                    <label>Nome da Sala:</label>
+                    <input type="text" value="${s.n}" onchange="tempSalas[${i}].n=this.value">
+                    <div>
+                        ${(s.p || []).map((p, pIdx) => `
+                            <div class="config-section">
+                                <label>Professor:</label>
+                                <input type="text" value="${p.nome}" onchange="tempSalas[${i}].p[${pIdx}].nome=this.value">
+                                <div class="config-row">
+                                    <div>
+                                        <label>Séries (separadas por vírgula):</label>
+                                        <input type="text" value="${p.seriesAtendidas || ''}" placeholder="Ex: 1ºA, 1ºB" onchange="tempSalas[${i}].p[${pIdx}].seriesAtendidas=this.value">
+                                    </div>
+                                    <div style="max-width:100px;">
+                                        <label>Tempo (min):</label>
+                                        <input type="number" value="${p.tempoAtendimento || 10}" onchange="tempSalas[${i}].p[${pIdx}].tempoAtendimento=parseInt(this.value)">
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button onclick="tempSalas[${i}].p.push({nome:'NOVO PROFESSOR', seriesAtendidas:'', tempoAtendimento:10}); renderConfigSalas()" style="margin-top:5px; cursor:pointer; background:#1f2937; color:white; padding: 5px 10px; border:1px solid #4b5563; border-radius:4px;">+ Professor</button>
+                    <button onclick="tempSalas.splice(${i},1); renderConfigSalas()" style="background:#7f1d1d; color:#f87171; border:1px solid #b91c1c; margin-top:5px; cursor:pointer; float:right; padding: 5px 10px; border-radius:4px;">Remover Sala</button>
+                    <div style="clear:both;"></div>
+                </div>
+            `).join(''); 
+        }
+        function addNovaSala() { tempSalas.push({n: "NOVA SALA", p:[{nome:"NOVO PROFESSOR", seriesAtendidas:"", tempoAtendimento:10}]}); renderConfigSalas(); }
+        function saveConfig() { db.ref('sistema_v3').update({ t: document.getElementById('cfgEventTitle').value, salas: tempSalas, series: tempSeries }); closeConfig(); }
+    </script>
+</body>
+</html>
