@@ -16,6 +16,7 @@
         
         h1#mainTitle { font-size: 26px; color: #3b82f6; margin: 0 0 5px 0; text-transform: uppercase; }
         #relogio { font-family: monospace; color: #60a5fa; font-weight: bold; font-size: 20px; }
+        .segmento-badge { background: #3b82f6; color: #fff; font-size: 13px; padding: 3px 10px; border-radius: 12px; margin-left: 8px; font-weight: bold; text-transform: uppercase; vertical-align: middle; }
         
         .btn-som { background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; margin-right: 15px; transition: background 0.2s; }
         .btn-som.ativo { background: #059669; }
@@ -111,7 +112,7 @@
 
     <header>
         <div>
-            <h1 id="mainTitle">ESI SÃO JOSÉ - PROJEÇÃO</h1>
+            <h1 id="mainTitle">ESI SÃO JOSÉ - PROJEÇÃO <span id="segBadge" class="segmento-badge"></span></h1>
             <div id="relogio">00:00:00</div>
         </div>
 
@@ -151,6 +152,9 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+
+        let activeSegment = "fund1";
+        let segmentList = { "fund1": "Ensino Fundamental I", "fund2": "Ensino Fundamental II", "infantil": "Educação Infantil", "medio": "Ensino Médio" };
 
         let curSala = 0;
         let cloudData = { t: "PAINEL DE PROJEÇÃO", salas: [], items: {} };
@@ -231,14 +235,32 @@
             btn.classList.add('ativo');
         }
 
-        db.ref('sistema_v3').on('value', (snapshot) => {
-            const val = snapshot.val();
-            if (val) { 
-                cloudData = val; 
-                verificarNovosChamados();
-                render(); 
-            }
+        // LEITURA DO SEGMENTO ATIVO DO FIREBASE
+        db.ref('sistema_v3/segmento_ativo').on('value', (snap) => {
+            if (snap.val()) activeSegment = snap.val();
+            conectarListenerSegmento();
         });
+
+        db.ref('sistema_v3/segmentos_lista').on('value', (snap) => {
+            if (snap.val()) segmentList = snap.val();
+        });
+
+        let currentSegmentRef = null;
+        function conectarListenerSegmento() {
+            if (currentSegmentRef) currentSegmentRef.off();
+            currentSegmentRef = db.ref(`sistema_v3/segmentos/${activeSegment}`);
+            currentSegmentRef.on('value', (snapshot) => {
+                const val = snapshot.val();
+                if (val) { 
+                    cloudData = val; 
+                    verificarNovosChamados();
+                    render(); 
+                } else {
+                    cloudData = { t: "REUNIÃO SÃO JOSÉ", salas: [], items: {} };
+                    render();
+                }
+            });
+        }
 
         function verificarNovosChamados() {
             const novosAtivos = new Set();
@@ -254,7 +276,7 @@
         }
 
         function render() {
-            document.getElementById('mainTitle').innerText = cloudData.t || "REUNIÃO SÃO JOSÉ";
+            document.getElementById('mainTitle').innerHTML = (cloudData.t || "REUNIÃO SÃO JOSÉ") + ` <span id="segBadge" class="segmento-badge">${segmentList[activeSegment] || activeSegment}</span>`;
             
             const tabs = document.getElementById('tabBar');
             tabs.innerHTML = (cloudData.salas || []).map((s, i) => `
@@ -263,7 +285,7 @@
 
             const grid = document.getElementById('mainGrid');
             if (!cloudData.salas || !cloudData.salas[curSala] || !cloudData.salas[curSala].p) {
-                return grid.innerHTML = "<div style='padding:20px; font-weight:bold; color:#94a3b8;'>Nenhuma sala ou professor configurado para projeção.</div>";
+                return grid.innerHTML = "<div style='padding:20px; font-weight:bold; color:#94a3b8;'>Nenhuma sala ou professor configurado para projeção neste segmento.</div>";
             }
 
             const totalProfessores = cloudData.salas[curSala].p.length;
