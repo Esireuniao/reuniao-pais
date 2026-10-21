@@ -85,7 +85,7 @@
             </div>
         </div>
         <div style="display:flex; gap:6px; flex-wrap:wrap;">
-            <button style="background:#059669; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight: bold; font-size: 13px;" onclick="exportarRelatorioCSV()">📊 EXPORTAR RELATÓRIO</button>
+            <button style="background:#059669; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight: bold; font-size: 13px;" onclick="solicitarSenhaEExportarCSV()">📊 EXPORTAR RELATÓRIO</button>
             <button style="background:#2563eb; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight: bold; font-size: 13px;" onclick="testarVozAtual()">🔊 TESTAR SOM</button>
             <button style="background:#2563eb; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight: bold; font-size: 13px;" onclick="solicitarSenhaEAbrirConfig()">⚙️ CONFIGURAÇÕES</button>
         </div>
@@ -142,7 +142,7 @@
             </div>
 
             <div style="background:#0f172a; border: 1px solid #334155; padding: 10px; border-radius:6px; margin-bottom:12px;">
-                <label style="font-size: 12px; font-weight: bold; color: #f59e0b;">🔒 Alterar Senha de Acesso às Configurações:</label>
+                <label style="font-size: 12px; font-weight: bold; color: #f59e0b;">🔒 Alterar Senha de Acesso (Configurações e Exportação):</label>
                 <input type="password" id="cfgAdminPin" placeholder="Senha padrão: 1234" style="margin-top:4px; margin-bottom:0;">
             </div>
 
@@ -192,6 +192,16 @@
             const digitado = prompt("🔒 Digite a senha do administrador:");
             if (digitado === pinCadastrado) {
                 openConfig();
+            } else if (digitado !== null) {
+                alert("❌ Senha incorreta!");
+            }
+        }
+
+        function solicitarSenhaEExportarCSV() {
+            const pinCadastrado = cloudData.pin || "1234";
+            const digitado = prompt("🔒 Digite a senha do administrador para exportar o relatório:");
+            if (digitado === pinCadastrado) {
+                exportarRelatorioCSV();
             } else if (digitado !== null) {
                 alert("❌ Senha incorreta!");
             }
