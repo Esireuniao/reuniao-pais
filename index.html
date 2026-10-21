@@ -6,38 +6,34 @@
     <!-- Firebase App e Database -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    
-    <!-- Biblioteca para geração do QR Code -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 15px; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; overflow: hidden; }
-        header { border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0b0f19; color: #f8fafc; margin: 0; padding: 15px; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; overflow: hidden; }
+        header { border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         
+        .header-brand { display: flex; align-items: center; gap: 15px; }
+        .logo-header { max-height: 52px; width: auto; border-radius: 6px; background: #ffffff; padding: 4px; display: none; }
+
         h1#mainTitle { font-size: 26px; color: #3b82f6; margin: 0 0 5px 0; text-transform: uppercase; }
         #relogio { font-family: monospace; color: #60a5fa; font-weight: bold; font-size: 20px; }
         .segmento-badge { background: #3b82f6; color: #fff; font-size: 13px; padding: 3px 10px; border-radius: 12px; margin-left: 8px; font-weight: bold; text-transform: uppercase; vertical-align: middle; }
         
-        .btn-som { background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; margin-right: 15px; transition: background 0.2s; }
+        .marquee-banner { background: #1e293b; border: 1px solid #334155; color: #f59e0b; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; margin-bottom: 10px; text-align: center; }
+
+        .btn-som { background: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.2s; }
         .btn-som.ativo { background: #059669; }
 
-        /* ESTILO DO CONTAINER DO QR CODE NO HEADER */
-        .qrcode-box { display: flex; align-items: center; gap: 10px; background: #1e293b; padding: 6px 12px; border-radius: 8px; border: 1px solid #334155; cursor: pointer; }
-        .qrcode-text { font-size: 11px; font-weight: bold; color: #94a3b8; text-transform: uppercase; line-height: 1.2; text-align: right; }
-        #qrcodeCanvas { background: #ffffff; padding: 4px; border-radius: 4px; display: flex; justify-content: center; align-items: center; }
-        #qrcodeCanvas img, #qrcodeCanvas canvas { display: block !important; }
+        /* ESPAÇO PARA O LOGO NO CABEÇALHO DIREITO */
+        .logo-right-box { display: flex; align-items: center; background: #1e293b; padding: 6px 12px; border-radius: 8px; border: 1px solid #334155; }
+        #headerRightLogoImg { max-height: 45px; width: auto; border-radius: 4px; background: #ffffff; padding: 2px; display: none; }
 
         .tabs { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; flex-shrink: 0; padding-bottom: 5px; }
         .tab-btn { padding: 10px 20px; background: #1e293b; border: 1px solid #334155; color: #94a3b8; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 16px; white-space: nowrap; }
         .tab-btn.active { background: #2563eb; color: white; border-color: #3b82f6; box-shadow: 0 0 10px rgba(37, 99, 235, 0.3); }
         
-        /* Container Principal da Projeção */
         .grid-horizontal { display: flex; gap: 15px; overflow-x: auto; flex-grow: 1; align-items: stretch; padding-bottom: 10px; width: 100%; box-sizing: border-box; }
-        
-        /* TRAVA DE TELA: Quando tiver 4+ professores, bloqueia a rolagem horizontal */
         .grid-horizontal.compacto { overflow-x: hidden; gap: 8px; }
         
-        /* CARD PADRÃO */
         .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; flex: 1; min-width: 380px; max-width: 500px; box-sizing: border-box; }
         .grid-horizontal.compacto .card { min-width: 0 !important; max-width: none !important; flex: 1 1 0%; padding: 10px; border-radius: 8px; }
         
@@ -50,7 +46,6 @@
         .prof-mesa-badge { color: #f59e0b; font-size: 13px; font-weight: bold; margin-top: 2px; text-transform: uppercase; }
         .grid-horizontal.compacto .prof-mesa-badge { font-size: 11px; }
 
-        /* Lista de Chamadas */
         .agenda-list { overflow-y: auto; flex-grow: 1; min-width: 0; scroll-behavior: smooth; }
         .agenda-list::-webkit-scrollbar { width: 4px; }
         .agenda-list::-webkit-scrollbar-track { background: #1e293b; }
@@ -59,7 +54,6 @@
         .agenda-item { background: #111827; border: 1px solid #374151; padding: 12px; border-radius: 8px; margin-top: 8px; border-left: 6px solid #64748b; min-width: 0; transition: all 0.3s ease; }
         .grid-horizontal.compacto .agenda-item { padding: 8px; margin-top: 5px; border-left-width: 4px; border-radius: 5px; }
         
-        /* Destaque PRÓXIMO DA FILA */
         .agenda-item.proximo { 
             border-left-color: #f59e0b; 
             background: #1e1b11; 
@@ -68,24 +62,22 @@
             border-bottom: 1px solid #78350f; 
         }
 
-        /* Destaque "FOI CHAMADO" para o atendimento atual */
         .agenda-item.ativo { 
             border-left-color: #10b981; 
             background: linear-gradient(135deg, #064e3b 0%, #022c22 100%); 
             border: 2px solid #10b981; 
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); 
-            animation: piscaCard 1.5s infinite alternate;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5); 
+            animation: piscaCard 1.2s infinite alternate;
         }
 
         @keyframes piscaCard {
-            0% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); border-color: #10b981; }
-            100% { box-shadow: 0 0 22px rgba(16, 185, 129, 0.8); border-color: #34d399; }
+            0% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); border-color: #10b981; transform: scale(1); }
+            100% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.9); border-color: #34d399; transform: scale(1.01); }
         }
         
         .item-label { font-size: 12px; font-weight: bold; color: #94a3b8; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .grid-horizontal.compacto .item-label { font-size: 11px; }
 
-        /* Indicador de posição na fila */
         .posicao-badge { font-family: monospace; font-size: 13px; font-weight: bold; color: #f59e0b; background: rgba(245, 158, 11, 0.1); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.3); }
         .grid-horizontal.compacto .posicao-badge { font-size: 11px; padding: 0px 4px; }
         
@@ -100,48 +92,35 @@
         .status-badge.ativo { background: #10b981; color: #ffffff; animation: pulsa 1s infinite; }
         
         @keyframes pulsa { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
-
-        /* MODAL DE ZOOM DO QR CODE */
-        #modalQrZoom { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; backdrop-filter: blur(6px); }
-        .modal-qr-content { background: #1e293b; padding: 30px; border-radius: 16px; border: 2px solid #3b82f6; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); }
-        #qrExpandedCanvas { background: #ffffff; padding: 16px; border-radius: 12px; margin: 15px auto; display: inline-block; }
-        #qrExpandedCanvas img, #qrExpandedCanvas canvas { display: block !important; margin: 0 auto; }
     </style>
 </head>
 <body>
 
     <header>
-        <div>
-            <h1 id="mainTitle">ESI SÃO JOSÉ - PROJEÇÃO <span id="segBadge" class="segmento-badge"></span></h1>
-            <div id="relogio">00:00:00</div>
+        <div class="header-brand">
+            <img id="mainLogoHeaderProj" class="logo-header" src="" alt="Logo Escola">
+            <div>
+                <h1 id="mainTitle">ESI SÃO JOSÉ - PROJEÇÃO <span id="segBadge" class="segmento-badge"></span></h1>
+                <div id="relogio">00:00:00</div>
+            </div>
         </div>
 
         <div style="display:flex; align-items:center; gap: 15px;">
-            <!-- CONTAINER DO QR CODE -->
-            <div class="qrcode-box" onclick="abrirZoomQr()" title="Clique para ampliar o QR Code">
-                <div class="qrcode-text">
-                    Acompanhe a fila<br><span style="color: #60a5fa;">no celular 📱</span>
-                </div>
-                <div id="qrcodeCanvas"></div>
+            <!-- ESPAÇO DO LOGOTIPO NO LUGAR DO QR CODE -->
+            <div class="logo-right-box">
+                <img id="headerRightLogoImg" src="" alt="Logotipo">
             </div>
 
             <button id="btnAudio" class="btn-som" onclick="ativarAudioPainel()">🔔 ATIVAR SOM DO PAINEL</button>
         </div>
     </header>
 
+    <div class="marquee-banner">
+        📢 BEM-VINDOS À REUNIÃO DE PAIS! ACOMPANHE A CHAMADA PELA TELA EM TEMPO REAL.
+    </div>
+
     <div id="tabBar" class="tabs"></div>
     <div id="mainGrid" class="grid-horizontal"></div>
-
-    <!-- MODAL EXPANDIDO DO QR CODE PARA LEITURA DE LONGE -->
-    <div id="modalQrZoom" onclick="fecharZoomQr()">
-        <div class="modal-qr-content" onclick="event.stopPropagation()">
-            <h2 style="margin: 0; color: #3b82f6; font-size: 22px;">ACOMPANHE A FILA NO SEU CELULAR</h2>
-            <p style="color: #94a3b8; font-size: 14px; margin: 8px 0 0 0;">Aponta a câmera do celular para o código abaixo:</p>
-            <div id="qrExpandedCanvas"></div>
-            <br>
-            <button onclick="fecharZoomQr()" style="background: #2563eb; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">Fechar / Voltar</button>
-        </div>
-    </div>
 
     <script>
         const firebaseConfig = {
@@ -157,58 +136,22 @@
         let segmentList = { "fund1": "Ensino Fundamental I", "fund2": "Ensino Fundamental II", "infantil": "Educação Infantil", "medio": "Ensino Médio" };
 
         let curSala = 0;
-        let cloudData = { t: "PAINEL DE PROJEÇÃO", salas: [], items: {} };
+        let cloudData = { t: "PAINEL DE PROJEÇÃO", salas: [], items: {}, logo: "" };
         let chamadosAnteriores = new Set();
         let audioPermitido = false;
-
-        // GERADOR DE QR CODE
-        window.addEventListener('DOMContentLoaded', () => {
-            const currentUrl = window.location.href;
-
-            // QR Code Pequeno do Header
-            new QRCode(document.getElementById("qrcodeCanvas"), {
-                text: currentUrl,
-                width: 48,
-                height: 48,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.M
-            });
-
-            // QR Code Expandido
-            new QRCode(document.getElementById("qrExpandedCanvas"), {
-                text: currentUrl,
-                width: 260,
-                height: 260,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-        });
-
-        function abrirZoomQr() {
-            document.getElementById('modalQrZoom').style.display = 'flex';
-        }
-
-        function fecharZoomQr() {
-            document.getElementById('modalQrZoom').style.display = 'none';
-        }
 
         function tocarGongoPainel() {
             if (!audioPermitido) return;
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                
                 const osc1 = ctx.createOscillator();
                 const gain1 = ctx.createGain();
                 osc1.type = 'sine';
                 osc1.frequency.setValueAtTime(659.25, ctx.currentTime);
                 gain1.gain.setValueAtTime(0.3, ctx.currentTime);
                 gain1.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.2);
-                osc1.connect(gain1);
-                gain1.connect(ctx.destination);
-                osc1.start(ctx.currentTime);
-                osc1.stop(ctx.currentTime + 1.2);
+                osc1.connect(gain1); gain1.connect(ctx.destination);
+                osc1.start(ctx.currentTime); osc1.stop(ctx.currentTime + 1.2);
 
                 setTimeout(() => {
                     const osc2 = ctx.createOscillator();
@@ -217,13 +160,11 @@
                     osc2.frequency.setValueAtTime(523.25, ctx.currentTime);
                     gain2.gain.setValueAtTime(0.4, ctx.currentTime);
                     gain2.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.5);
-                    osc2.connect(gain2);
-                    gain2.connect(ctx.destination);
-                    osc2.start(ctx.currentTime);
-                    osc2.stop(ctx.currentTime + 1.5);
+                    osc2.connect(gain2); gain2.connect(ctx.destination);
+                    osc2.start(ctx.currentTime); osc2.stop(ctx.currentTime + 1.5);
                 }, 300);
             } catch (e) {
-                console.log("Aguardando permissão de áudio do usuário.");
+                console.log("Aguardando permissão de áudio.");
             }
         }
 
@@ -235,7 +176,6 @@
             btn.classList.add('ativo');
         }
 
-        // LEITURA DO SEGMENTO ATIVO DO FIREBASE
         db.ref('sistema_v3/segmento_ativo').on('value', (snap) => {
             if (snap.val()) activeSegment = snap.val();
             conectarListenerSegmento();
@@ -256,7 +196,7 @@
                     verificarNovosChamados();
                     render(); 
                 } else {
-                    cloudData = { t: "REUNIÃO SÃO JOSÉ", salas: [], items: {} };
+                    cloudData = { t: "REUNIÃO SÃO JOSÉ", salas: [], items: {}, logo: "" };
                     render();
                 }
             });
@@ -276,6 +216,20 @@
         }
 
         function render() {
+            const logoHeaderEl = document.getElementById('mainLogoHeaderProj');
+            const headerRightLogoImg = document.getElementById('headerRightLogoImg');
+            
+            if (cloudData.logo) {
+                logoHeaderEl.src = cloudData.logo;
+                logoHeaderEl.style.display = 'block';
+
+                headerRightLogoImg.src = cloudData.logo;
+                headerRightLogoImg.style.display = 'block';
+            } else {
+                logoHeaderEl.style.display = 'none';
+                headerRightLogoImg.style.display = 'none';
+            }
+
             document.getElementById('mainTitle').innerHTML = (cloudData.t || "REUNIÃO SÃO JOSÉ") + ` <span id="segBadge" class="segmento-badge">${segmentList[activeSegment] || activeSegment}</span>`;
             
             const tabs = document.getElementById('tabBar');
@@ -290,11 +244,8 @@
 
             const totalProfessores = cloudData.salas[curSala].p.length;
             
-            if (totalProfessores >= 4) { 
-                grid.classList.add('compacto'); 
-            } else { 
-                grid.classList.remove('compacto'); 
-            }
+            if (totalProfessores >= 4) { grid.classList.add('compacto'); } 
+            else { grid.classList.remove('compacto'); }
 
             grid.innerHTML = cloudData.salas[curSala].p.map((profObj, pIdx) => {
                 const pName = profObj.nome;
@@ -351,7 +302,6 @@
             }).join('');
         }
 
-        // ROLAGEM AUTOMÁTICA
         let scrollDirection = 1;
         setInterval(() => {
             const listas = document.querySelectorAll('.agenda-list');
