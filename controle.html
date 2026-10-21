@@ -8,18 +8,29 @@
     
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 12px; }
-        header { border-bottom: 2px solid #1e293b; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        header { border-bottom: 2px solid #1e293b; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         
-        h1#mainTitle { font-size: 24px; color: #3b82f6; margin: 0 0 4px 0; }
-        #relogio { font-family: monospace; color: #60a5fa; font-weight: bold; font-size: 18px; }
+        h1#mainTitle { font-size: 22px; color: #3b82f6; margin: 0 0 4px 0; }
+        #relogio { font-family: monospace; color: #60a5fa; font-weight: bold; font-size: 16px; }
+        .segmento-badge { background: #3b82f6; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 12px; margin-left: 8px; font-weight: bold; text-transform: uppercase; }
         
+        /* BARRA DE ESTATÍSTICAS */
+        .stats-bar { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .stat-card { background: #1e293b; border: 1px solid #334155; padding: 8px 14px; border-radius: 6px; flex: 1; min-width: 130px; }
+        .stat-title { font-size: 10px; color: #94a3b8; font-weight: bold; text-transform: uppercase; }
+        .stat-value { font-size: 18px; color: #38bdf8; font-weight: bold; margin-top: 2px; }
+        
+        /* FILTRO RÁPIDO */
+        .search-container { margin-bottom: 12px; }
+        .search-input { width: 100%; padding: 10px; background: #1e293b; border: 1px solid #3b82f6; color: white; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
+        .search-input::placeholder { color: #64748b; }
+
         .tabs { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; }
         .tab-btn { padding: 8px 16px; background: #1e293b; border: 1px solid #334155; color: #94a3b8; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 14px; }
         .tab-btn.active { background: #2563eb; color: white; border-color: #3b82f6; box-shadow: 0 0 10px rgba(37, 99, 235, 0.3); }
         
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 15px; align-items: start; }
         
-        /* CARD MAIS COMPACTO COM FOCO NA LISTA */
         .card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; height: 650px; box-sizing: border-box; }
         
         .card-header-fixed { flex-shrink: 0; }
@@ -27,7 +38,6 @@
         .prof-mesa-badge { font-size: 11px; color: #f59e0b; font-weight: bold; margin-bottom: 6px; text-transform: uppercase; }
         .prof-time-badge { font-size: 11px; background: #172554; color: #60a5fa; padding: 2px 6px; border-radius: 12px; border: 1px solid #1e3a8a; text-transform: none; }
         
-        /* INPUT AREA REDUZIDA */
         .input-area { background: #111827; padding: 8px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #374151; }
         .input-area label { font-size: 11px; font-weight: bold; color: #94a3b8; display: block; margin-bottom: 2px; }
         input, select { background: #1f2937; border: 1px solid #4b5563; color: #f8fafc; padding: 6px 8px; border-radius: 4px; font-size: 13px; width: 100%; box-sizing: border-box; display: block; margin-bottom: 6px; font-weight: 500; }
@@ -36,7 +46,6 @@
         .btn-add { background: #059669; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 2px; font-size: 13px; transition: background 0.2s; }
         .btn-add:hover { background: #047857; }
 
-        /* LISTA EXPANDIDA COM SCROLL AUTOMÁTICO */
         .agenda-list { overflow-y: auto; flex-grow: 1; padding-right: 4px; scroll-behavior: smooth; }
         .agenda-list::-webkit-scrollbar { width: 6px; }
         .agenda-list::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
@@ -58,26 +67,53 @@
         button.action:hover { background: #374151; }
 
         #modalConfig { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); z-index: 1000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
-        .modal-body { background: #1e293b; width: 100%; max-width: 720px; border-radius: 12px; padding: 20px; max-height: 90vh; overflow-y: auto; border: 1px solid #334155; color: #f8fafc; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
+        .modal-body { background: #1e293b; width: 100%; max-width: 760px; border-radius: 12px; padding: 20px; max-height: 90vh; overflow-y: auto; border: 1px solid #334155; color: #f8fafc; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
         .config-section { border: 1px solid #334155; padding: 10px; margin-top: 10px; border-radius: 6px; background: #111827; }
         .audio-box-sala { border: 1px dashed #3b82f6; padding: 10px; margin-top: 8px; border-radius: 6px; background: #0f172a; }
         textarea { width: 100%; height: 50px; background: #1f2937; color: #f8fafc; border: 1px solid #4b5563; border-radius: 4px; padding: 5px; box-sizing: border-box; font-size: 12px; }
         .config-row { display: flex; gap: 10px; }
         .config-row > div { flex: 1; }
+        .segment-box { background: #0f172a; border: 1px solid #3b82f6; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
     <header>
         <div>
-            <h1 id="mainTitle">CONFIGURANDO NOVA REUNIÃO V3...</h1>
+            <h1 id="mainTitle">CONFIGURANDO REUNIÃO... <span id="segBadge" class="segmento-badge"></span></h1>
             <div id="relogio">00:00:00</div>
         </div>
-        <div>
-            <button style="background:#2563eb; color:white; border:none; padding:8px 14px; border-radius:5px; cursor:pointer; font-weight: bold; font-size: 13px; margin-right: 5px;" onclick="testarVozAtual()">🔊 TESTAR SOM DA SALA</button>
-            <button style="background:#2563eb; color:white; border:none; padding:8px 16px; border-radius:5px; cursor:pointer; font-weight: bold; font-size: 13px;" onclick="openConfig()">⚙️ CONFIGURAÇÕES DA REUNIÃO</button>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button style="background:#059669; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight: bold; font-size: 13px;" onclick="exportarRelatorioCSV()">📊 EXPORTAR RELATÓRIO</button>
+            <button style="background:#2563eb; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight: bold; font-size: 13px;" onclick="testarVozAtual()">🔊 TESTAR SOM</button>
+            <button style="background:#2563eb; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight: bold; font-size: 13px;" onclick="solicitarSenhaEAbrirConfig()">⚙️ CONFIGURAÇÕES</button>
         </div>
     </header>
+
+    <!-- CARDS DE ESTATÍSTICAS -->
+    <div class="stats-bar">
+        <div class="stat-card">
+            <div class="stat-title">Em Espera</div>
+            <div class="stat-value" id="stEspera">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Em Atendimento</div>
+            <div class="stat-value" style="color:#f59e0b;" id="stAtivo">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Concluídos</div>
+            <div class="stat-value" style="color:#10b981;" id="stConcluido">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Total Agendados</div>
+            <div class="stat-value" style="color:#a855f7;" id="stTotal">0</div>
+        </div>
+    </div>
+
+    <!-- CAMPO DE BUSCA / FILTRO RÁPIDO -->
+    <div class="search-container">
+        <input type="text" id="inputFiltro" class="search-input" placeholder="🔍 Filtro rápido: digite o nome do aluno ou série para buscar..." oninput="filtrarFilaLocal(this.value)">
+    </div>
 
     <div id="tabBar" class="tabs"></div>
     <div id="mainGrid" class="grid"></div>
@@ -87,8 +123,21 @@
         <div class="modal-body">
             <h3 style="margin-top: 0; color: #3b82f6; border-bottom: 2px solid #334155; padding-bottom: 5px; font-size: 20px;">Configurações Globais (V3 - Dark)</h3>
             
-            <label style="font-size: 14px; font-weight: bold; color: #94a3b8;">Título da Reunião / Segmento:</label>
-            <input type="text" id="cfgEventTitle" placeholder="Ex: REUNIÃO DE PAIS - INFANTIL / FUND I">
+            <div class="segment-box">
+                <label style="font-size: 14px; font-weight: bold; color: #60a5fa; display: block; margin-bottom: 4px;">📂 Selecionar / Criar Segmento (Ciclo):</label>
+                <div style="display:flex; gap: 8px;">
+                    <select id="cfgSegmentSelect" style="margin-bottom:0;" onchange="trocarSegmentoConfig(this.value)"></select>
+                    <button onclick="addNovoSegmento()" style="background:#059669; color:white; border:none; padding:6px 12px; font-size:12px; cursor:pointer; font-weight:bold; border-radius:4px; whitespace:nowrap;">+ Novo Segmento</button>
+                </div>
+            </div>
+
+            <div style="background:#0f172a; border: 1px solid #334155; padding: 10px; border-radius:6px; margin-bottom:12px;">
+                <label style="font-size: 12px; font-weight: bold; color: #f59e0b;">🔒 Alterar Senha de Acesso às Configurações:</label>
+                <input type="password" id="cfgAdminPin" placeholder="Senha padrão: 1234" style="margin-top:4px; margin-bottom:0;">
+            </div>
+
+            <label style="font-size: 14px; font-weight: bold; color: #94a3b8;">Título da Reunião (Segmento Atual):</label>
+            <input type="text" id="cfgEventTitle" placeholder="Ex: REUNIÃO DE PAIS - ENSINO FUNDAMENTAL I">
 
             <h4 style="color: #f8fafc; margin: 15px 0 5px 0; font-size: 16px;">1. Séries e Alunos</h4>
             <div id="seriesConfigList"></div>
@@ -99,7 +148,13 @@
             <button onclick="addNovaSala()" style="background:#2563eb; color:white; border:none; padding:10px 15px; font-size:14px; cursor:pointer; font-weight: bold; border-radius: 4px; margin-top:10px; width:100%;">+ ADICIONAR NOVA SALA</button>
             
             <hr style="margin-top:20px; border-color:#334155;">
-            <button onclick="saveConfig()" style="width:100%; background:#059669; color:white; border:none; padding:12px; cursor:pointer; font-weight: bold; border-radius: 4px; font-size:15px;">SALVAR CONFIGURAÇÕES</button>
+            
+            <div style="display:flex; gap: 8px; margin-bottom: 8px;">
+                <button onclick="limparApenasFilaAtiva()" style="flex:1; background:#d97706; color:white; border:none; padding:10px; cursor:pointer; font-weight: bold; border-radius: 4px; font-size:13px;">🧹 Limpar Apenas Fila Deste Segmento</button>
+                <button onclick="resetarSegmentoAtualDoZero()" style="flex:1; background:#dc2626; color:white; border:none; padding:10px; cursor:pointer; font-weight: bold; border-radius: 4px; font-size:13px;">⚠️ Zerar Tudo e Configurar Do Zero</button>
+            </div>
+
+            <button onclick="saveConfig()" style="width:100%; background:#059669; color:white; border:none; padding:12px; cursor:pointer; font-weight: bold; border-radius: 4px; font-size:15px;">SALVAR CONFIGURAÇÕES DO SEGMENTO</button>
             <button onclick="closeConfig()" style="width:100%; background:none; color:#94a3b8; border:none; margin-top:10px; cursor:pointer; font-size: 14px;">Fechar / Cancelar</button>
         </div>
     </div>
@@ -114,20 +169,26 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        let activeSegment = "fund1";
+        let segmentList = { "fund1": "Ensino Fundamental I", "fund2": "Ensino Fundamental II", "infantil": "Educação Infantil", "medio": "Ensino Médio" };
+
         let curSala = 0;
-        let cloudData = { 
-            t: "REUNIÃO V3 - TOQUE EM CONFIGURAÇÕES", 
-            salas: [], 
-            series: {}, 
-            items: {}
-        };
+        let cloudData = { t: "REUNIÃO V3 - TOQUE EM CONFIGURAÇÕES", salas: [], series: {}, items: {}, pin: "1234" };
         let alarmesTocados = new Set();
-        let listaVozesDisponiveis = [];
+        let termoFiltroGlobal = "";
+
+        function solicitarSenhaEAbrirConfig() {
+            const pinCadastrado = cloudData.pin || "1234";
+            const digitado = prompt("🔒 Digite a senha do administrador:");
+            if (digitado === pinCadastrado) {
+                openConfig();
+            } else if (digitado !== null) {
+                alert("❌ Senha incorreta!");
+            }
+        }
 
         function carregarVozesSistema() {
-            if ('speechSynthesis' in window) {
-                listaVozesDisponiveis = window.speechSynthesis.getVoices();
-            }
+            if ('speechSynthesis' in window) { window.speechSynthesis.getVoices(); }
         }
         if ('speechSynthesis' in window) {
             window.speechSynthesis.onvoiceschanged = carregarVozesSistema;
@@ -136,7 +197,6 @@
 
         function tocarVoz(texto, enabled, rate, pitch, voiceURI) {
             if (enabled === false) return;
-
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(texto);
@@ -149,7 +209,6 @@
                     const vozSelecionada = vozes.find(v => v.voiceURI === voiceURI || v.name === voiceURI);
                     if (vozSelecionada) utterance.voice = vozSelecionada;
                 }
-
                 window.speechSynthesis.speak(utterance);
             }
         }
@@ -160,10 +219,7 @@
             const mesaFinal = mesaProf || salaObj.n || "mesa de atendimento";
             
             let template = audioCfg.template || "Atenção: Pais do aluno {aluno}, favor dirigir-se ao professor {professor} na mesa {mesa}.";
-            let mensagem = template
-                .replace(/{aluno}/g, aluno)
-                .replace(/{professor}/g, prof)
-                .replace(/{mesa}/g, mesaFinal);
+            let mensagem = template.replace(/{aluno}/g, aluno).replace(/{professor}/g, prof).replace(/{mesa}/g, mesaFinal);
                 
             tocarVoz(mensagem, audioCfg.enabled, audioCfg.rate, audioCfg.pitch, audioCfg.voiceURI);
         }
@@ -172,7 +228,6 @@
             const profPrimeiro = cloudData.salas[curSala]?.p?.[0];
             const mesaProf = profPrimeiro?.mesa || cloudData.salas[curSala]?.n || "Mesa 01";
             const profNome = profPrimeiro?.nome || "Carlos Souza";
-
             chamarComVozDirecta("Gabriel Silva", profNome, mesaProf);
         }
 
@@ -187,11 +242,7 @@
             const nomeMesa = primeiroProf?.mesa || tempSalas[sIdx]?.n || "Mesa 01";
             const nomeProf = primeiroProf?.nome || "Carlos Souza";
 
-            let mensagem = template
-                .replace(/{aluno}/g, "Gabriel Silva")
-                .replace(/{professor}/g, nomeProf)
-                .replace(/{mesa}/g, nomeMesa);
-
+            let mensagem = template.replace(/{aluno}/g, "Gabriel Silva").replace(/{professor}/g, nomeProf).replace(/{mesa}/g, nomeMesa);
             tocarVoz(mensagem, audioEnabled, rate, pitch, voiceURI);
         }
 
@@ -208,23 +259,60 @@
             osc.stop(context.currentTime + 0.5);
         }
 
-        db.ref('sistema_v3').on('value', (snapshot) => {
-            const val = snapshot.val();
-            if (val) { cloudData = val; render(); }
-            else { openConfig(); }
+        db.ref('sistema_v3/segmento_ativo').on('value', (snap) => {
+            if (snap.val()) activeSegment = snap.val();
+            conectarListenerSegmento();
         });
+
+        db.ref('sistema_v3/segmentos_lista').on('value', (snap) => {
+            if (snap.val()) segmentList = snap.val();
+        });
+
+        let currentSegmentRef = null;
+        function conectarListenerSegmento() {
+            if (currentSegmentRef) currentSegmentRef.off();
+            currentSegmentRef = db.ref(`sistema_v3/segmentos/${activeSegment}`);
+            currentSegmentRef.on('value', (snapshot) => {
+                const val = snapshot.val();
+                if (val) { cloudData = val; calcularEstatísticas(); render(); }
+                else { 
+                    cloudData = { t: "NOVO SEGMENTO - CONFIGURE", salas: [], series: {}, items: {}, pin: "1234" };
+                    calcularEstatísticas();
+                    openConfig(); 
+                }
+            });
+        }
+
+        function calcularEstatísticas() {
+            const todosItems = Object.values(cloudData.items || {});
+            let espera = 0, ativo = 0, concluido = 0;
+
+            todosItems.forEach(i => {
+                if (i.status === 'espera') espera++;
+                else if (i.status === 'ativo') ativo++;
+                else if (i.status === 'fim') concluido++;
+            });
+
+            document.getElementById('stEspera').innerText = espera;
+            document.getElementById('stAtivo').innerText = ativo;
+            document.getElementById('stConcluido').innerText = concluido;
+            document.getElementById('stTotal').innerText = todosItems.length;
+        }
+
+        function filtrarFilaLocal(termo) {
+            termoFiltroGlobal = termo.toLowerCase().trim();
+            render();
+        }
 
         function rolarFilaParaTopo(pIdx) {
             setTimeout(() => {
                 const listEl = document.getElementById(`agenda-list-${pIdx}`);
-                if (listEl) {
-                    listEl.scrollTop = 0;
-                }
+                if (listEl) listEl.scrollTop = 0;
             }, 100);
         }
 
         function render() {
-            document.getElementById('mainTitle').innerText = cloudData.t || "REUNIÃO V3";
+            document.getElementById('mainTitle').innerHTML = (cloudData.t || "REUNIÃO V3") + ` <span id="segBadge" class="segmento-badge">${segmentList[activeSegment] || activeSegment}</span>`;
             const tabs = document.getElementById('tabBar');
             tabs.innerHTML = (cloudData.salas || []).map((s, i) => `
                 <button class="tab-btn ${curSala==i?'active':''}" onclick="curSala=${i}; render()">${s.n}</button>
@@ -232,7 +320,7 @@
 
             const grid = document.getElementById('mainGrid');
             if (!cloudData.salas || !cloudData.salas[curSala] || !cloudData.salas[curSala].p) {
-                return grid.innerHTML = "<div style='padding:20px; font-weight:bold; color:#94a3b8;'>Abra as configurações para cadastrar as salas e professores!</div>";
+                return grid.innerHTML = "<div style='padding:20px; font-weight:bold; color:#94a3b8;'>Abra as configurações para cadastrar as salas e professores deste segmento!</div>";
             }
 
             const savedStates = {};
@@ -258,8 +346,12 @@
                 const pTime = parseInt(profObj.tempoAtendimento || 10);
                 const listaSeries = (profObj.seriesAtendidas || "").split(',').map(s => s.trim()).filter(s => s !== "");
 
-                const itemsProf = Object.values(cloudData.items || {}).filter(i => i.sala == curSala && i.prof == pName);
+                let itemsProf = Object.values(cloudData.items || {}).filter(i => i.sala == curSala && i.prof == pName);
                 itemsProf.sort((a,b) => a.id.localeCompare(b.id));
+
+                if (termoFiltroGlobal) {
+                    itemsProf = itemsProf.filter(i => (i.a || "").toLowerCase().includes(termoFiltroGlobal) || (i.serie || "").toLowerCase().includes(termoFiltroGlobal));
+                }
 
                 const proximoItem = itemsProf.find(i => i.status === 'espera');
                 const proximoId = proximoItem ? proximoItem.id : null;
@@ -327,7 +419,6 @@
 
                 if (state && elSerie && elAluno) {
                     elSerie.value = state.serieVal;
-                    
                     if (state.serieVal) {
                         elAluno.innerHTML = state.alunoHTML;
                         elAluno.disabled = state.alunoDisabled;
@@ -369,7 +460,7 @@
             if(!serieSel || !alunoSel) return alert("Selecione a Série e o Aluno!");
             
             const id = Date.now().toString();
-            db.ref('sistema_v3/items/' + id).set({ 
+            db.ref(`sistema_v3/segmentos/${activeSegment}/items/` + id).set({ 
                 id, sala: curSala, prof: profName, serie: serieSel, a: alunoSel, r: "", status: 'espera', start: 0, tempoMaxLim: tempoMaxLim
             }).then(() => {
                 const selectSerie = document.getElementById(`sel-serie-${pIdx}`);
@@ -388,7 +479,7 @@
                 up.start = Date.now(); 
                 alarmesTocados.delete(id);
             }
-            db.ref('sistema_v3/items/' + id).update(up).then(() => {
+            db.ref(`sistema_v3/segmentos/${activeSegment}/items/` + id).update(up).then(() => {
                 rolarFilaParaTopo(pIdx);
             });
         }
@@ -396,18 +487,40 @@
         function reagendarItem(oldId, pIdx) {
             const itemOriginal = cloudData.items[oldId];
             const novoId = Date.now().toString();
-            db.ref('sistema_v3/items/' + oldId).remove();
-            db.ref('sistema_v3/items/' + novoId).set({...itemOriginal, id: novoId, status: 'espera', start: 0}).then(() => {
+            db.ref(`sistema_v3/segmentos/${activeSegment}/items/` + oldId).remove();
+            db.ref(`sistema_v3/segmentos/${activeSegment}/items/` + novoId).set({...itemOriginal, id: novoId, status: 'espera', start: 0}).then(() => {
                 rolarFilaParaTopo(pIdx);
             });
         }
 
         function removeItem(id, pIdx) { 
-            db.ref('sistema_v3/items/' + id).remove().then(() => {
+            db.ref(`sistema_v3/segmentos/${activeSegment}/items/` + id).remove().then(() => {
                 rolarFilaParaTopo(pIdx);
             }); 
         }
 
+        function exportarRelatorioCSV() {
+            const items = Object.values(cloudData.items || {});
+            if (items.length === 0) return alert("Nenhum atendimento registrado para exportar neste segmento!");
+
+            let csvContent = "data:text/csv;charset=utf-8,ID;Segmento;Sala;Professor;Serie;Aluno;Status\n";
+            const segNome = segmentList[activeSegment] || activeSegment;
+
+            items.forEach(i => {
+                const salaNome = cloudData.salas[i.sala]?.n || "Sala " + i.sala;
+                csvContent += `${i.id};"${segNome}";"${salaNome}";"${i.prof}";"${i.serie}";"${i.a}";"${i.status}"\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `relatorio_${activeSegment}_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        /* TIMER CORRIGIDO COM RECALCULO EM TEMPO REAL */
         setInterval(() => {
             document.getElementById('relogio').innerText = new Date().toLocaleTimeString();
             
@@ -415,7 +528,9 @@
                 if(item.status === 'ativo') {
                     const el = document.getElementById('tm-' + item.id);
                     if(el) {
-                        const maxMinutos = parseInt(item.tempoMaxLim || 10);
+                        const profObj = cloudData.salas[item.sala]?.p?.find(p => p.nome === item.prof);
+                        const maxMinutos = profObj ? parseInt(profObj.tempoAtendimento || 10) : parseInt(item.tempoMaxLim || 10);
+                        
                         let diff = (maxMinutos * 60) - Math.floor((Date.now() - item.start) / 1000);
                         let m = Math.floor(Math.abs(diff)/60).toString().padStart(2,'0');
                         let s = (Math.abs(diff)%60).toString().padStart(2,'0');
@@ -427,19 +542,16 @@
                             
                             if(!alarmesTocados.has(item.id)) { 
                                 tocarAlarme(); 
-                                
-                                const profObj = cloudData.salas[item.sala]?.p?.find(p => p.nome === item.prof);
                                 const mesaProf = profObj?.mesa || cloudData.salas[item.sala]?.n || "mesa de atendimento";
-                                
                                 const mensagemFim = `Atenção: O tempo de atendimento do aluno ${item.a} na ${mesaProf} encerrou.`;
-                                
                                 const salaObj = cloudData.salas[item.sala] || {};
                                 const audioCfg = salaObj.audioCfg || {};
                                 
                                 tocarVoz(mensagemFim, audioCfg.enabled, audioCfg.rate, audioCfg.pitch, audioCfg.voiceURI);
-                                
                                 alarmesTocados.add(item.id); 
                             } 
+                        } else {
+                            el.classList.remove('perigo');
                         }
                     }
                 }
@@ -451,12 +563,38 @@
             carregarVozesSistema();
             tempSalas = JSON.parse(JSON.stringify(cloudData.salas || []));
             tempSeries = JSON.parse(JSON.stringify(cloudData.series || {}));
+            
+            renderSegmentSelectOptions();
+            
             document.getElementById('modalConfig').style.display = 'flex'; 
             document.getElementById('cfgEventTitle').value = cloudData.t || ""; 
+            document.getElementById('cfgAdminPin').value = cloudData.pin || "1234";
             renderConfigSeries(); renderConfigSalas(); 
         }
         function closeConfig() { document.getElementById('modalConfig').style.display = 'none'; }
         
+        function renderSegmentSelectOptions() {
+            const sel = document.getElementById('cfgSegmentSelect');
+            sel.innerHTML = Object.keys(segmentList).map(k => `
+                <option value="${k}" ${k === activeSegment ? 'selected' : ''}>${segmentList[k]}</option>
+            `).join('');
+        }
+
+        function trocarSegmentoConfig(newSeg) {
+            activeSegment = newSeg;
+            db.ref('sistema_v3/segmento_ativo').set(newSeg);
+        }
+
+        function addNovoSegmento() {
+            const nomeSeg = prompt("Nome do Novo Segmento / Ciclo (Ex: Ensino Médio):");
+            if (nomeSeg) {
+                const key = 'seg_' + Date.now();
+                segmentList[key] = nomeSeg.trim();
+                db.ref('sistema_v3/segmentos_lista').set(segmentList);
+                trocarSegmentoConfig(key);
+            }
+        }
+
         function renderConfigSeries() {
             document.getElementById('seriesConfigList').innerHTML = Object.keys(tempSeries).map(sName => `
                 <div style="background:#111827; padding:8px; margin-top:5px; border-radius:4px; border:1px solid #334155;">
@@ -488,7 +626,10 @@
 
                 return `
                 <div style="background:#111827; padding:10px; margin-top:10px; border-radius:5px; border:1px solid #334155;">
-                    <label style="font-weight:bold; color:#3b82f6;">Nome do Bloco / Sala:</label>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <label style="font-weight:bold; color:#3b82f6;">Nome do Bloco / Sala:</label>
+                        <button onclick="if(confirm('Deseja remover esta SALA INTEIRA e todos os seus professores?')) { tempSalas.splice(${i},1); renderConfigSalas(); }" style="color:#f87171; background:none; border:none; cursor:pointer; font-weight:bold; font-size:12px;">🗑️ Excluir Sala Inteira</button>
+                    </div>
                     <input type="text" value="${s.n}" onchange="tempSalas[${i}].n=this.value" placeholder="Ex: Quadra 01, Bloco A">
                     
                     <div class="audio-box-sala">
@@ -528,57 +669,49 @@
                             <div class="config-section">
                                 <div class="config-row">
                                     <div style="flex:2;">
-                                        <label>Professor:</label>
+                                        <label style="font-size:11px; color:#94a3b8;">Nome do Professor:</label>
                                         <input type="text" value="${p.nome}" onchange="tempSalas[${i}].p[${pIdx}].nome=this.value">
                                     </div>
                                     <div style="flex:1;">
-                                        <label style="color:#f59e0b;">Mesa do Prof.:</label>
+                                        <label style="font-size:11px; color:#94a3b8;">Mesa / Posição:</label>
                                         <input type="text" value="${p.mesa || ''}" placeholder="Ex: Mesa 01" onchange="tempSalas[${i}].p[${pIdx}].mesa=this.value">
                                     </div>
+                                    <div style="flex:1;">
+                                        <label style="font-size:11px; color:#94a3b8;">Tempo (min):</label>
+                                        <input type="number" value="${p.tempoAtendimento || 10}" onchange="tempSalas[${i}].p[${pIdx}].tempoAtendimento=this.value">
+                                    </div>
                                 </div>
-                                <div class="config-row">
-                                    <div>
-                                        <label>Séries (separadas por vírgula):</label>
-                                        <input type="text" value="${p.seriesAtendidas || ''}" placeholder="Ex: 1ºA, 1ºB" onchange="tempSalas[${i}].p[${pIdx}].seriesAtendidas=this.value">
-                                    </div>
-                                    <div style="max-width:100px;">
-                                        <label>Tempo (min):</label>
-                                        <input type="number" value="${p.tempoAtendimento || 10}" onchange="tempSalas[${i}].p[${pIdx}].tempoAtendimento=parseInt(this.value)">
-                                    </div>
+                                <label style="font-size:11px; color:#94a3b8; display:block; margin-top:4px;">Séries Atendidas (separadas por vírgula):</label>
+                                <input type="text" value="${p.seriesAtendidas || ''}" placeholder="Ex: 1ºA, 1ºB, 2ºA" onchange="tempSalas[${i}].p[${pIdx}].seriesAtendidas=this.value">
+                                <div style="text-align:right; margin-top:6px;">
+                                    <button onclick="if(confirm('Tem certeza que deseja remover apenas este professor?')) { tempSalas[${i}].p.splice(${pIdx},1); renderConfigSalas(); }" style="color:#f87171; background:none; border:none; cursor:pointer; font-size:11px; font-weight:bold;">🗑️ Remover Apenas Este Professor</button>
                                 </div>
                             </div>
                         `).join('')}
+                        <button onclick="tempSalas[${i}].p = tempSalas[${i}].p || []; tempSalas[${i}].p.push({nome:'', mesa:'', tempoAtendimento:10, seriesAtendidas:''}); renderConfigSalas()" style="background:#059669; color:white; border:none; padding:6px 10px; font-size:12px; cursor:pointer; font-weight:bold; border-radius:4px; margin-top:8px;">+ Adicionar Professor</button>
                     </div>
-                    <button onclick="tempSalas[${i}].p.push({nome:'NOVO PROFESSOR', mesa:'Mesa 01', seriesAtendidas:'', tempoAtendimento:10}); renderConfigSalas()" style="margin-top:5px; cursor:pointer; background:#1f2937; color:white; padding: 5px 10px; border:1px solid #4b5563; border-radius:4px;">+ Professor</button>
-                    <button onclick="tempSalas.splice(${i},1); renderConfigSalas()" style="background:#7f1d1d; color:#f87171; border:1px solid #b91c1c; margin-top:5px; cursor:pointer; float:right; padding: 5px 10px; border-radius:4px;">Remover Sala</button>
-                    <div style="clear:both;"></div>
                 </div>
-            `}).join(''); 
+                `;
+            }).join('');
         }
 
-        function addNovaSala() { 
-            tempSalas.push({
-                n: "SALA " + (tempSalas.length + 1), 
-                audioCfg: {
-                    enabled: true,
-                    template: "Atenção: Pais do aluno {aluno}, favor dirigir-se ao professor {professor} na mesa {mesa}.",
-                    rate: 0.95,
-                    pitch: 1.0,
-                    voiceURI: ""
-                },
-                p:[{nome:"NOVO PROFESSOR", mesa:"Mesa 01", seriesAtendidas:"", tempoAtendimento:10}]
-            }); 
-            renderConfigSalas(); 
+        function addNovaSala() {
+            tempSalas.push({ n: "Nova Sala", audioCfg: { enabled: true, template: "", rate: 0.95, pitch: 1.0, voiceURI: "" }, p: [] });
+            renderConfigSalas();
         }
 
-        function saveConfig() { 
-            tempSalas.forEach((s, i) => {
-                if (!s.audioCfg) s.audioCfg = {};
-                const elEnabled = document.getElementById(`cfgAudioEnabled_${i}`);
-                const elTemplate = document.getElementById(`cfgAudioTemplate_${i}`);
-                const elRate = document.getElementById(`cfgAudioRate_${i}`);
-                const elPitch = document.getElementById(`cfgAudioPitch_${i}`);
-                const elVoice = document.getElementById(`cfgAudioVoice_${i}`);
+        /* FUNÇÃO SALVAR ATUALIZADA */
+        function saveConfig() {
+            const title = document.getElementById('cfgEventTitle').value;
+            const pin = document.getElementById('cfgAdminPin').value || "1234";
+            
+            tempSalas.forEach((s, idx) => {
+                s.audioCfg = s.audioCfg || {};
+                const elEnabled = document.getElementById(`cfgAudioEnabled_${idx}`);
+                const elTemplate = document.getElementById(`cfgAudioTemplate_${idx}`);
+                const elRate = document.getElementById(`cfgAudioRate_${idx}`);
+                const elPitch = document.getElementById(`cfgAudioPitch_${idx}`);
+                const elVoice = document.getElementById(`cfgAudioVoice_${idx}`);
 
                 if (elEnabled) s.audioCfg.enabled = elEnabled.checked;
                 if (elTemplate) s.audioCfg.template = elTemplate.value;
@@ -587,12 +720,52 @@
                 if (elVoice) s.audioCfg.voiceURI = elVoice.value;
             });
 
-            db.ref('sistema_v3').update({ 
-                t: document.getElementById('cfgEventTitle').value, 
-                salas: tempSalas, 
+            const updatesItems = {};
+            Object.values(cloudData.items || {}).forEach(item => {
+                const salaObj = tempSalas[item.sala];
+                if (salaObj && salaObj.p) {
+                    const profObj = salaObj.p.find(p => p.nome === item.prof);
+                    if (profObj && profObj.tempoAtendimento) {
+                        const novoTempo = parseInt(profObj.tempoAtendimento);
+                        if (item.tempoMaxLim !== novoTempo) {
+                            updatesItems[`sistema_v3/segmentos/${activeSegment}/items/${item.id}/tempoMaxLim`] = novoTempo;
+                        }
+                    }
+                }
+            });
+
+            db.ref(`sistema_v3/segmentos/${activeSegment}`).update({
+                t: title,
+                pin: pin,
+                salas: tempSalas,
                 series: tempSeries
-            }); 
-            closeConfig(); 
+            }).then(() => {
+                if (Object.keys(updatesItems).length > 0) {
+                    db.ref().update(updatesItems);
+                }
+                closeConfig();
+            });
+        }
+
+        function limparApenasFilaAtiva() {
+            if (confirm(`Tem certeza que deseja apagar apenas as filas/atendimentos do segmento "${segmentList[activeSegment]}"? A estrutura de professores e alunos será mantida.`)) {
+                db.ref(`sistema_v3/segmentos/${activeSegment}/items`).remove().then(() => {
+                    alert("Fila do segmento limpa com sucesso!");
+                });
+            }
+        }
+
+        function resetarSegmentoAtualDoZero() {
+            if (confirm(`ATENÇÃO: Deseja apagar TUDO do segmento "${segmentList[activeSegment]}" e reconfigurar do zero? Esta ação é irreversible.`)) {
+                db.ref(`sistema_v3/segmentos/${activeSegment}`).remove().then(() => {
+                    cloudData = { t: "NOVO SEGMENTO", salas: [], series: {}, items: {}, pin: "1234" };
+                    tempSalas = [];
+                    tempSeries = {};
+                    renderConfigSeries();
+                    renderConfigSalas();
+                    alert("Segmento resetado com sucesso! Adicione as novas salas e séries.");
+                });
+            }
         }
     </script>
 </body>
