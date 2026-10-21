@@ -68,6 +68,9 @@
                 <div id="relogio">00:00:00</div>
             </div>
         </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button style="background:#2563eb; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight: bold; font-size: 13px;" onclick="testarVozAtual()">🔊 TESTAR SOM</button>
+        </div>
     </header>
 
     <div id="tabBar" class="tabs"></div>
@@ -125,6 +128,13 @@
             let mensagem = template.replace(/{aluno}/g, aluno).replace(/{professor}/g, prof).replace(/{mesa}/g, mesaFinal);
                 
             tocarVoz(mensagem, audioCfg.enabled, audioCfg.rate, audioCfg.pitch, audioCfg.voiceURI);
+        }
+
+        function testarVozAtual() {
+            const profPrimeiro = cloudData.salas[curSala]?.p?.[0];
+            const mesaProf = profPrimeiro?.mesa || cloudData.salas[curSala]?.n || "Mesa 01";
+            const profNome = profPrimeiro?.nome || "Carlos Souza";
+            chamarComVozDirecta("Gabriel Silva", profNome, mesaProf);
         }
 
         function tocarAlarme() {
