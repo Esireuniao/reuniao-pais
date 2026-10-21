@@ -21,31 +21,40 @@
         .tab-btn { padding: 10px 18px; background: #1e293b; border: 1px solid #334155; color: #94a3b8; cursor: pointer; border-radius: 6px; font-weight: bold; font-size: 15px; }
         .tab-btn.active { background: #2563eb; color: white; border-color: #3b82f6; box-shadow: 0 0 10px rgba(37, 99, 235, 0.3); }
         
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 15px; align-items: start; }
-        .card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 14px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; height: 600px; box-sizing: border-box; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 15px; align-items: start; }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; height: 650px; box-sizing: border-box; }
         
-        .prof-name { color: #60a5fa; font-weight: bold; text-transform: uppercase; margin-bottom: 2px; border-bottom: 1px solid #3b82f6; padding-bottom: 4px; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
-        .prof-mesa-badge { font-size: 12px; color: #f59e0b; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; }
+        .card-header-fixed { flex-shrink: 0; }
+        .prof-name { color: #60a5fa; font-weight: bold; text-transform: uppercase; margin-bottom: 2px; border-bottom: 1px solid #3b82f6; padding-bottom: 4px; font-size: 17px; display: flex; justify-content: space-between; align-items: center; }
+        .prof-mesa-badge { font-size: 11px; color: #f59e0b; font-weight: bold; margin-bottom: 6px; text-transform: uppercase; }
         .prof-time-badge { font-size: 11px; background: #172554; color: #60a5fa; padding: 2px 6px; border-radius: 12px; border: 1px solid #1e3a8a; text-transform: none; }
+        
+        .input-area { background: #111827; padding: 8px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #374151; }
+        .input-area label { font-size: 11px; font-weight: bold; color: #94a3b8; display: block; margin-bottom: 2px; }
+        input, select { background: #1f2937; border: 1px solid #4b5563; color: #f8fafc; padding: 6px 8px; border-radius: 4px; font-size: 13px; width: 100%; box-sizing: border-box; display: block; margin-bottom: 6px; font-weight: 500; }
+        input:focus, select:focus { border-color: #3b82f6; outline: none; }
+        
+        .btn-add { background: #059669; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 2px; font-size: 13px; transition: background 0.2s; }
+        .btn-add:hover { background: #047857; }
 
         .agenda-list { overflow-y: auto; flex-grow: 1; padding-right: 4px; scroll-behavior: smooth; }
         .agenda-list::-webkit-scrollbar { width: 6px; }
         .agenda-list::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
         .agenda-list::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
 
-        .agenda-item { background: #111827; border: 1px solid #374151; padding: 12px; border-radius: 8px; margin-top: 8px; border-left: 5px solid #64748b; transition: all 0.2s; }
+        .agenda-item { background: #111827; border: 1px solid #374151; padding: 10px; border-radius: 6px; margin-top: 6px; border-left: 5px solid #64748b; transition: all 0.2s; }
         .agenda-item.proximo { border-left-color: #f59e0b; background: #1e1b11; border-top: 1px solid #78350f; border-right: 1px solid #78350f; border-bottom: 1px solid #78350f; }
         .agenda-item.ativo { border-left-color: #3b82f6; background: #172554; border-top: 1px solid #1e3a8a; border-right: 1px solid #1e3a8a; border-bottom: 1px solid #1e3a8a; }
         .agenda-item.concluido { opacity: 0.4; border-left-color: #10b981; background: #022c22; }
         
         .badge-proximo { background: #f59e0b; color: #000; font-size: 10px; font-weight: bold; padding: 2px 5px; border-radius: 3px; margin-left: 6px; text-transform: uppercase; }
 
-        .timer { font-family: monospace; font-weight: bold; color: #34d399; font-size: 18px; }
-        .timer.perigo { color: #f87171; animation: pisca 1s infinite; font-size: 20px; }
+        .timer { font-family: monospace; font-weight: bold; color: #34d399; font-size: 16px; }
+        .timer.perigo { color: #f87171; animation: pisca 1s infinite; font-size: 18px; }
         @keyframes pisca { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
         
-        .controls { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
-        button.action { font-size: 13px; padding: 8px 12px; cursor: pointer; border-radius: 5px; border: 1px solid #4b5563; background: #1f2937; color: #e5e7eb; font-weight: bold; }
+        .controls { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+        button.action { font-size: 12px; padding: 6px 10px; cursor: pointer; border-radius: 4px; border: 1px solid #4b5563; background: #1f2937; color: #e5e7eb; font-weight: bold; }
         button.action:hover { background: #374151; }
     </style>
 </head>
@@ -179,10 +188,28 @@
                 return grid.innerHTML = "<div style='padding:20px; font-weight:bold; color:#94a3b8;'>Nenhuma sala ou professor configurado neste segmento.</div>";
             }
 
+            const savedStates = {};
+            const activeElementId = document.activeElement ? document.activeElement.id : null;
+
+            cloudData.salas[curSala].p.forEach((_, pIdx) => {
+                const elSerie = document.getElementById(`sel-serie-${pIdx}`);
+                const elAluno = document.getElementById(`sel-aluno-${pIdx}`);
+                
+                if (elSerie) {
+                    savedStates[pIdx] = {
+                        serieVal: elSerie.value,
+                        alunoVal: elAluno ? elAluno.value : "",
+                        alunoDisabled: elAluno ? elAluno.disabled : true,
+                        alunoHTML: elAluno ? elAluno.innerHTML : '<option value="">-- Série --</option>'
+                    };
+                }
+            });
+
             grid.innerHTML = cloudData.salas[curSala].p.map((profObj, pIdx) => {
                 const pName = profObj.nome;
                 const pMesa = profObj.mesa || cloudData.salas[curSala].n || "Mesa 01";
                 const pTime = parseInt(profObj.tempoAtendimento || 10);
+                const listaSeries = (profObj.seriesAtendidas || "").split(',').map(s => s.trim()).filter(s => s !== "");
 
                 let itemsProf = Object.values(cloudData.items || {}).filter(i => i.sala == curSala && i.prof == pName);
                 itemsProf.sort((a,b) => a.id.localeCompare(b.id));
@@ -192,20 +219,31 @@
 
                 return `
                 <div class="card">
-                    <div>
+                    <div class="card-header-fixed">
                         <div class="prof-name">
                             <span>${pName}</span>
                             <span class="prof-time-badge">⏱️ ${pTime} min</span>
                         </div>
                         <div class="prof-mesa-badge">📍 Loc: ${pMesa}</div>
+                        
+                        <div class="input-area">
+                            <label>1. Série:</label>
+                            <select id="sel-serie-${pIdx}" onchange="carregarAlunosDaSerie(${pIdx})">
+                                <option value="">-- Selecione a Série --</option>
+                                ${listaSeries.map(s => `<option value="${s}">${s}</option>`).join('')}
+                            </select>
+                            
+                            <label>2. Aluno:</label>
+                            <select id="sel-aluno-${pIdx}" disabled onkeydown="if(event.key==='Enter') addItemV3(${pIdx}, '${pName}', ${pTime})">
+                                <option value="">-- Escolha a série primeiro --</option>
+                            </select>
+                            
+                            <button class="btn-add" onclick="addItemV3(${pIdx}, '${pName}', ${pTime})">AGENDAR NA FILA</button>
+                        </div>
                     </div>
                     
                     <div class="agenda-list" id="agenda-list-${pIdx}">
-                        ${itemsProf.length === 0 ? `
-                            <div style="padding:20px; text-align:center; color:#64748b; font-size:14px; font-style:italic;">
-                                Sem atendimentos agendados
-                            </div>
-                        ` : itemsProf.map(item => {
+                        ${itemsProf.map(item => {
                             const isProximo = (item.id === proximoId);
                             return `
                             <div class="agenda-item ${item.status=='ativo'?'ativo':''} ${item.status=='fim'?'concluido':''}${isProximo ? 'proximo' : ''}">
@@ -215,7 +253,7 @@
                                     </div>
                                     <span class="timer" id="tm-${item.id}">${item.status=='fim'?'OK': (pTime.toString().padStart(2,'0') + ':00')}</span>
                                 </div>
-                                <div style="font-size:16px; font-weight:bold; margin-top:4px; color:#ffffff">${item.a}</div>
+                                <div style="font-size:15px; font-weight:bold; margin-top:3px; color:#ffffff">${item.a}</div>
                                 
                                 <div class="controls">
                                     ${item.status=='espera' ? `
@@ -234,6 +272,66 @@
                     </div>
                 </div>`;
             }).join('');
+
+            cloudData.salas[curSala].p.forEach((_, pIdx) => {
+                const elSerie = document.getElementById(`sel-serie-${pIdx}`);
+                const elAluno = document.getElementById(`sel-aluno-${pIdx}`);
+                const state = savedStates[pIdx];
+
+                if (state && elSerie && elAluno) {
+                    elSerie.value = state.serieVal;
+                    if (state.serieVal) {
+                        elAluno.innerHTML = state.alunoHTML;
+                        elAluno.disabled = state.alunoDisabled;
+                        elAluno.value = state.alunoVal;
+                    }
+                }
+            });
+
+            if (activeElementId) {
+                const elToFocus = document.getElementById(activeElementId);
+                if (elToFocus) elToFocus.focus();
+            }
+        }
+
+        function carregarAlunosDaSerie(pIdx) {
+            const serieSelecionada = document.getElementById(`sel-serie-${pIdx}`).value;
+            const selectAluno = document.getElementById(`sel-aluno-${pIdx}`);
+            
+            if(!serieSelecionada) { 
+                selectAluno.innerHTML = '<option value="">-- Escolha a série primeiro --</option>';
+                selectAluno.disabled = true; 
+                return; 
+            }
+
+            const alunosRaw = (cloudData.series && cloudData.series[serieSelecionada]) || "";
+            const lista = alunosRaw.split('\n')
+                .map(l => l.trim())
+                .filter(l => l !== "")
+                .sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
+
+            selectAluno.innerHTML = '<option value="">-- Selecione o Aluno --</option>' + lista.map(a => `<option value="${a}">${a}</option>`).join('');
+            selectAluno.disabled = false;
+            selectAluno.focus();
+        }
+
+        function addItemV3(pIdx, profName, tempoMaxLim) {
+            const serieSel = document.getElementById(`sel-serie-${pIdx}`).value;
+            const alunoSel = document.getElementById(`sel-aluno-${pIdx}`).value;
+            if(!serieSel || !alunoSel) return alert("Selecione a Série e o Aluno!");
+            
+            const id = Date.now().toString();
+            db.ref(`sistema_v3/segmentos/${activeSegment}/items/` + id).set({ 
+                id, sala: curSala, prof: profName, serie: serieSel, a: alunoSel, r: "", status: 'espera', start: 0, tempoMaxLim: tempoMaxLim
+            }).then(() => {
+                const selectSerie = document.getElementById(`sel-serie-${pIdx}`);
+                const selectAluno = document.getElementById(`sel-aluno-${pIdx}`);
+                if (selectSerie) selectSerie.value = "";
+                if (selectAluno) {
+                    selectAluno.innerHTML = '<option value="">-- Escolha a série primeiro --</option>';
+                    selectAluno.disabled = true;
+                }
+            });
         }
 
         function setStatus(id, status, pIdx) {
